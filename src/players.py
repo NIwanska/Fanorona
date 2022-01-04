@@ -505,7 +505,7 @@ class Computer():
         opponent_stone = self.opponent_stone()
         capturing_moves = board.capturing_moves(stone, opponent_stone)
         next_moves = []
-        if r and c:
+        if r is not None and c is not None:
             best_capture = []
             new_capturing_moves = []
             for move in capturing_moves:
