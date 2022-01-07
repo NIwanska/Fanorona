@@ -16,7 +16,28 @@ class Player():
     opponent_stone: int
         1 - white
         2 - black
+
+    Methods
+    -------
+    __init__(stone):
+        creates player
+    stone():
+        returns player's stone
+    opponent_stone():
+        returns opponent's stone
+    paika_move(board, move):
+        makes move without capturing
+    capturing_move(board, move):
+        makes move and captures opponent's stones
+    choose_which_to_capture(board, captured_stones):
+        captures chosen stones
+    is_next_turn(self, board, r, c, forbidden_moves):
+        returns True if there is possible next turn
+    make_turn(board):
+        makes turns until there are no capturing moves
     """
+
+
     def __init__(self, stone):
         """
         Constructs all the necessary attributes for the player object.
@@ -52,7 +73,8 @@ class Player():
     def paika_move(self, board, move):
         """
         changes place from stone goes to 0 and plece where stone goes to 1 or 2
-        depending on stone. Draws board
+        depending on stone. Draws board.
+
         Parameters
         ----------
         board : Board
@@ -187,6 +209,40 @@ class Player():
         board.light_up_stones_to_capture(captured_stones)
         return bool(len(captured_stones))
 
+    def make_turn(self, board):
+        """
+        makes first move, adds forbidden moves to list and checks if next move is possible,
+        it makes next turns until it is impossible
+
+        Parameters
+        ----------
+        board : Board
+
+        Returns
+        -------
+        None
+        """
+
+        next_turn_moves = self.first_move(board)
+        forbidden_moves = []
+        while True:
+            if next_turn_moves:
+                forbidden_moves.append(
+                    (next_turn_moves[2], next_turn_moves[3]))
+                diff_r = next_turn_moves[0] - next_turn_moves[2]
+                diff_c = next_turn_moves[1] - next_turn_moves[3]
+                forbidden_moves.append(
+                    (next_turn_moves[0] + diff_r, next_turn_moves[1] + diff_c))
+                if self.is_next_turn(board, next_turn_moves[0], next_turn_moves[1], forbidden_moves):
+                    next_turn_moves = self.next_turn(
+                        board, (next_turn_moves[0], next_turn_moves[1]), forbidden_moves)
+                    forbidden_moves.pop()
+                else:
+                    return
+            else:
+                return
+
+
 
 class HumanPlayer(Player):
     """
@@ -198,13 +254,11 @@ class HumanPlayer(Player):
         creates player
     choose_stone(board):
         returns position of the stone if clicked on it
-    choosing_stone_to_move(board):
+    first_move(board):
         start of turn, makes paika move or capturing move dependent of the next click
     next_turn( board, chosen_stone, forbidden_moves):
         it checks if chosen move is capturing and
         not forbidden and makes capturing move
-    make_turn(board):
-        makes turns until there are no capturing moves
     """
     def __init__(self, stone):
         """
@@ -241,7 +295,7 @@ class HumanPlayer(Player):
                     r, c = board.chosen_position(event.pos[0], event.pos[1])
                     return r, c
 
-    def choosing_stone_to_move(self, board):
+    def first_move(self, board):
         """
         start of turn, lights stones that can move,
         when stone was chosen by clicking stones that can be capture changes color to red
@@ -304,39 +358,6 @@ class HumanPlayer(Player):
                     board.capturing_moves(self.stone(), self.opponent_stone())):
                 return self.capturing_move(board, (chosen_stone[0], chosen_stone[1], r, c))
 
-    def make_turn(self, board):
-        """
-        makes first move, adds forbidden moves to list and checks if next move is possible,
-        it makes next turns until it is impossible
-
-        Parameters
-        ----------
-        board : Board
-
-        Returns
-        -------
-        None
-        """
-
-        next_turn_moves = self.choosing_stone_to_move(board)
-        forbidden_moves = []
-        while True:
-            if next_turn_moves:
-                forbidden_moves.append(
-                    (next_turn_moves[2], next_turn_moves[3]))
-                diff_r = next_turn_moves[0] - next_turn_moves[2]
-                diff_c = next_turn_moves[1] - next_turn_moves[3]
-                forbidden_moves.append(
-                    (next_turn_moves[0] + diff_r, next_turn_moves[1] + diff_c))
-                if self.is_next_turn(board, next_turn_moves[0], next_turn_moves[1], forbidden_moves):
-                    next_turn_moves = self.next_turn(
-                        board, (next_turn_moves[0], next_turn_moves[1]), forbidden_moves)
-                    forbidden_moves.pop()
-                else:
-                    return
-            else:
-                return
-
 
 class Computer(Player):
     """
@@ -354,14 +375,15 @@ class Computer(Player):
         creates player
     level():
         returns computer's level
-    next_computer_turn(board, chosen_stone, forbidden_moves):
+    next_turn(board, chosen_stone, forbidden_moves):
         draws or choose the best move and makes capturing move
-    draw_move(board):
+    first_move(board):
         draws or choose the best move and makes possible move
-    best_drawing(board, r, c):
+    best_drawing(board):
         returns best move
-    make_turn(board):
-        makes turns until there are no capturing moves
+    best_next_drawing(board, r, c):
+        returns best move for given stone
+
     """
 
     def __init__(self, stone, level):
@@ -388,7 +410,7 @@ class Computer(Player):
         """
         return self._level
 
-    def next_computer_turn(self, board, chosen_stone, forbidden_moves):
+    def next_turn(self, board, chosen_stone, forbidden_moves):
         """
         it waits two sec.
         if there is possible next turn it draws capturing move - if computer's level is easy
@@ -406,7 +428,7 @@ class Computer(Player):
         move : (r, c, r1, r2)
 
         """
-        pygame.time.delay(2000)
+        pygame.time.delay(1800)
         stone = self.stone()
         opponent_stone = self.opponent_stone()
         while True:
@@ -414,14 +436,14 @@ class Computer(Player):
                 drawing_move = choice(
                     board.capturing_moves(stone, opponent_stone))
             else:
-                drawing_move = self.best_drawing(
+                drawing_move = self.best_next_drawing(
                     board, chosen_stone[0], chosen_stone[1])
             r = drawing_move[2]
             c = drawing_move[3]
             if (r, c) not in forbidden_moves:
                 return self.capturing_move(board, (chosen_stone[0], chosen_stone[1], r, c))
 
-    def draw_move(self, board):
+    def first_move(self, board):
         """
         if there is no capturing moves it draws any possible move and make it.
         else if computer's level is easy it draws capturing move
@@ -438,6 +460,7 @@ class Computer(Player):
             if it was paika move
 
         """
+        pygame.time.delay(1000)
         stone = self.stone()
         opponent_stone = self.opponent_stone()
         if len(board.capturing_moves(stone, opponent_stone)) == 0:
@@ -452,7 +475,7 @@ class Computer(Player):
                     drawing_move = self.best_drawing(board)
                 return self.capturing_move(board, drawing_move)
 
-    def best_drawing(self, board, r=None, c=None):
+    def best_drawing(self, board):
         """
         from capturing moves it returns move that lead to next move
         if it is impossible it returns move that captures the most stones
@@ -460,9 +483,6 @@ class Computer(Player):
         Parameters
         ----------
         board : Board
-        r : int, optional
-        c : int, optional
-            r, c given when it is not the first move
 
         Returns
         -------
@@ -472,10 +492,48 @@ class Computer(Player):
         opponent_stone = self.opponent_stone()
         capturing_moves = board.capturing_moves(stone, opponent_stone)
         next_moves = []
-        if r is not None and c is not None:
+        best_capture = []
+        for move in capturing_moves:
+            best_capture.append(
+                len(board.captured_stones(opponent_stone, move)[0]))
+            best_capture.append(
+                len(board.captured_stones(opponent_stone, move)[1]))
+            for empty in board.empty_places(move[2], move[3]):
+                empty_r = empty[0]
+                empty_c = empty[1]
+                future_move = (move[2], move[3], empty_r, empty_c)
+                if len(board.captured_stones(opponent_stone, future_move)[0]) != 0 or\
+                        len(board.captured_stones(opponent_stone, future_move)[1]) != 0:
+                    next_moves.append(move)
+        if len(next_moves) > 0:
+            return choice(next_moves)
+        best_value = max(best_capture)
+        indices = [i for i, x in enumerate(best_capture) if x == best_value]
+        index = choice(indices)
+        return capturing_moves[index//2]
+
+    def best_next_drawing(self, board, r, c):
+            """
+            from capturing moves it returns move that lead to next move
+            if it is impossible it returns move that captures the most stones
+
+            Parameters
+            ----------
+            board : Board
+            r : int,
+            c : int,
+                position of last moven stone
+
+            Returns
+            -------
+            move
+            """
+            stone = self.stone()
+            opponent_stone = self.opponent_stone()
+            next_moves = []
             best_capture = []
-            new_capturing_moves = []
-            for move in capturing_moves:
+            capturing_moves_for_stone = []
+            for move in board.capturing_moves(stone, opponent_stone):
                 if move[0] == r and move[1] == c:
                     best_capture.append(
                         len(board.captured_stones(opponent_stone, move)[0]))
@@ -488,61 +546,11 @@ class Computer(Player):
                         if len(board.captured_stones(opponent_stone, future_move)[0]) != 0 or\
                                 len(board.captured_stones(opponent_stone, future_move)[1]) != 0:
                             next_moves.append(move)
-                    new_capturing_moves.append(move)
-            capturing_moves = new_capturing_moves
+                    capturing_moves_for_stone.append(move)
             if len(next_moves) > 0:
                 return choice(next_moves)
-        else:
-            best_capture = []
-            for move in capturing_moves:
-                best_capture.append(
-                    len(board.captured_stones(opponent_stone, move)[0]))
-                best_capture.append(
-                    len(board.captured_stones(opponent_stone, move)[1]))
-                for empty in board.empty_places(move[2], move[3]):
-                    empty_r = empty[0]
-                    empty_c = empty[1]
-                    future_move = (move[2], move[3], empty_r, empty_c)
-                    if len(board.captured_stones(opponent_stone, future_move)[0]) != 0 or\
-                            len(board.captured_stones(opponent_stone, future_move)[1]) != 0:
-                        next_moves.append(move)
-            if len(next_moves) > 0:
-                return choice(next_moves)
-        best_value = max(best_capture)
-        indices = [i for i, x in enumerate(best_capture) if x == best_value]
-        index = choice(indices)
-        return capturing_moves[index//2]
+            best_value = max(best_capture)
+            indices = [i for i, x in enumerate(best_capture) if x == best_value]
+            index = choice(indices)
+            return capturing_moves_for_stone[index//2]
 
-    def make_turn(self, board):
-        """
-        makes first move, adds forbidden moves to list and checks if next move is possible,
-        it makes next turns until it is impossible
-
-        Parameters
-        ----------
-        board : Board
-
-        Returns
-        -------
-        None
-        """
-        board.draw_board()
-        pygame.time.delay(1000)
-        next_turn_moves = self.draw_move(board)
-        forbidden_moves = []
-        while True:
-            if next_turn_moves:
-                forbidden_moves.append(
-                    (next_turn_moves[2], next_turn_moves[3]))
-                diff_r = next_turn_moves[0] - next_turn_moves[2]
-                diff_c = next_turn_moves[1] - next_turn_moves[3]
-                forbidden_moves.append(
-                    (next_turn_moves[0] + diff_r, next_turn_moves[1] + diff_c))
-                if self.is_next_turn(board, next_turn_moves[0], next_turn_moves[1], forbidden_moves):
-                    next_turn_moves = self.next_computer_turn(
-                        board, (next_turn_moves[0], next_turn_moves[1]), forbidden_moves)
-                    forbidden_moves.pop()
-                else:
-                    return
-            else:
-                return

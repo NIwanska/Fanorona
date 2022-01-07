@@ -1,10 +1,4 @@
-from src.players import (
-    Player,
-    Computer,
-    paika_move,
-    capturing_move,
-    choose_which_to_capture,
-    is_next_turn)
+from src.players import HumanPlayer, Computer
 from src.board import Board
 
 
@@ -17,7 +11,8 @@ def test_paika_move():
         [0, 0, 0, 1, 0],
         [0, 1, 0, 1, 0]]
     move = (3, 3, 3, 2)
-    paika_move(board, 1, move)
+    player = HumanPlayer(1)
+    player.paika_move(board, move)
     assert board.matrix[3][3] == 0
     assert board.matrix[3][2] == 1
 
@@ -30,9 +25,9 @@ def test_capturing_move_approching():
         [0, 1, 2, 0, 0],
         [0, 0, 0, 1, 0],
         [0, 1, 0, 1, 0]]
-    player = Player(2)
+    player = HumanPlayer(2)
     move = (1, 3, 2, 3)
-    assert capturing_move(board, move, player) == (2, 3, 1, 3)
+    assert player.capturing_move(board, move) == (2, 3, 1, 3)
     assert board.matrix[1][3] == 0
     assert board.matrix[2][3] == 2
     assert board.matrix[3][3] == 0
@@ -54,9 +49,9 @@ def test_capturing_move_withdrawal():
         [0, 1, 2, 0, 0],
         [0, 0, 0, 1, 0],
         [0, 1, 0, 1, 0]]
-    player = Player(2)
+    player = HumanPlayer(2)
     move = (2, 2, 2, 3)
-    assert capturing_move(board, move, player) == (2, 3, 2, 2)
+    assert player.capturing_move(board, move) == (2, 3, 2, 2)
     assert board.matrix[2][2] == 0
     assert board.matrix[2][3] == 2
     assert board.matrix[2][1] == 0
@@ -74,13 +69,13 @@ def test_capturing_move_choosing(monkeypatch):
         [0, 1, 2, 0, 0],
         [0, 0, 0, 1, 0],
         [0, 2, 0, 1, 0]]
-    player = Player(1)
+    player = HumanPlayer(1)
     move = (2, 1, 3, 1)
 
     def return_choice(f, t):
         return 4, 1
-    monkeypatch.setattr(Player, "choose_stone", return_choice)
-    assert capturing_move(board, move, player) == (3, 1, 2, 1)
+    monkeypatch.setattr(HumanPlayer, "choose_stone", return_choice)
+    assert player.capturing_move(board, move) == (3, 1, 2, 1)
     assert board.matrix[0][1] == 2
     assert board.matrix[1][1] == 2
     assert board.matrix[2][1] == 0
@@ -103,13 +98,13 @@ def test_choose_which_to_capture_player(monkeypatch):
         [0, 1, 2, 0, 0],
         [0, 0, 0, 1, 0],
         [0, 2, 0, 1, 0]]
-    player = Player(1)
+    player = HumanPlayer(1)
 
     def return_choice(f, t):
         return 1, 1
-    monkeypatch.setattr(Player, "choose_stone", return_choice)
+    monkeypatch.setattr(HumanPlayer, "choose_stone", return_choice)
     captured_stones = ([(0, 1), (1, 1)], [(4, 1)])
-    choose_which_to_capture(board, captured_stones, player)
+    player.choose_which_to_capture(board, captured_stones)
     assert board.matrix[0][1] == 0
     assert board.matrix[1][1] == 0
     assert board.matrix[2][1] == 1
@@ -138,7 +133,7 @@ def test_choose_which_to_capture_computer_easy(monkeypatch):
         return 1, 1
     monkeypatch.setattr("src.players.choice", return_choice)
     captured_stones = ([(0, 1), (1, 1)], [(4, 1)])
-    choose_which_to_capture(board, captured_stones, player)
+    player.choose_which_to_capture(board, captured_stones)
     assert board.matrix[0][1] == 0
     assert board.matrix[1][1] == 0
     assert board.matrix[2][1] == 1
@@ -167,7 +162,7 @@ def test_choose_which_to_capture_computer_hard(monkeypatch):
         return 4, 1
     monkeypatch.setattr("src.players.choice", return_choice)
     captured_stones = ([(0, 1), (1, 1)], [(4, 1)])
-    choose_which_to_capture(board, captured_stones, player)
+    player.choose_which_to_capture(board, captured_stones)
     assert board.matrix[0][1] == 2
     assert board.matrix[1][1] == 2
     assert board.matrix[2][1] == 1
@@ -190,7 +185,8 @@ def test_is_next_turn_false():
         [0, 1, 2, 0, 0],
         [0, 0, 0, 1, 0],
         [0, 2, 0, 1, 0]]
-    assert is_next_turn(board, 2, 1, 1, 3, [(2, 3)]) is False
+    player = HumanPlayer(2)
+    assert player.is_next_turn(board, 1, 3, [(2, 3)]) is False
 
 
 def test_is_next_turn_True():
@@ -201,11 +197,12 @@ def test_is_next_turn_True():
         [0, 0, 2, 0, 0],
         [0, 2, 1, 1, 0],
         [0, 0, 0, 1, 0]]
-    assert is_next_turn(board, 2, 1, 3, 1, [(4, 1)]) is True
+    player = HumanPlayer(2)
+    assert player.is_next_turn(board, 3, 1, [(4, 1)]) is True
 
 
 def test_init_player():
-    player = Player(1)
+    player = HumanPlayer(1)
     assert player.stone() == 1
     assert player.opponent_stone() == 2
 
@@ -218,13 +215,13 @@ def test_next_turn(monkeypatch):
         [0, 1, 2, 0, 0],
         [0, 0, 0, 1, 0],
         [0, 2, 0, 1, 0]]
-    player = Player(2)
+    player = HumanPlayer(2)
     chosen_stone = (2, 2)
     forbidden_moves = [(3, 2)]
 
     def return_choice(f, t):
         return 2, 3
-    monkeypatch.setattr(Player, "choose_stone", return_choice)
+    monkeypatch.setattr(HumanPlayer, "choose_stone", return_choice)
     assert player.next_turn(board, chosen_stone,
                             forbidden_moves) == (2, 3, 2, 2)
     assert board.matrix[2][2] == 0
@@ -261,7 +258,7 @@ def test_next_computer_turn_easy(monkeypatch):
     def return_choice(f):
         return (2, 2, 2, 3)
     monkeypatch.setattr('src.players.choice', return_choice)
-    assert player.next_computer_turn(
+    assert player.next_turn(
         board, chosen_stone, forbidden_moves) == (2, 3, 2, 2)
     assert board.matrix[2][2] == 0
     assert board.matrix[2][3] == 2
@@ -290,7 +287,7 @@ def test_next_computer_turn_hard(monkeypatch):
     def return_choice(f, t, y, u):
         return (2, 2, 2, 3)
     monkeypatch.setattr(Computer, 'best_drawing', return_choice)
-    assert player.next_computer_turn(
+    assert player.next_turn(
         board, chosen_stone, forbidden_moves) == (2, 3, 2, 2)
     assert board.matrix[2][2] == 0
     assert board.matrix[2][3] == 2
@@ -317,7 +314,7 @@ def test_draw_move_paika(monkeypatch):
     def return_choice(f):
         return (2, 2, 3, 2)
     monkeypatch.setattr('src.players.choice', return_choice)
-    assert player.draw_move(board) is None
+    assert player.first_move(board) is None
     assert board.matrix[2][2] == 0
     assert board.matrix[3][2] == 2
     new_board = [
@@ -343,7 +340,7 @@ def test_draw_move_capture(monkeypatch):
     def return_choice(f):
         return (2, 1, 2, 0)
     monkeypatch.setattr('src.players.choice', return_choice)
-    assert player.draw_move(board) == (2, 0, 2, 1)
+    assert player.first_move(board) == (2, 0, 2, 1)
     assert board.matrix[2][1] == 0
     assert board.matrix[2][0] == 1
     assert board.matrix[2][2] == 0
@@ -390,7 +387,7 @@ def test_best_drawing_next_move_given_stone():
         [0, 0, 0, 1, 0],
         [0, 1, 0, 1, 0]]
     player = Computer(1, "Hard")
-    assert player.best_drawing(board, 2, 3) == (2, 3, 1, 3)
+    assert player.best_next_drawing(board, 2, 3) == (2, 3, 1, 3)
 
 
 def test_best_drawing_the_most_stones_given_stone():
@@ -402,7 +399,7 @@ def test_best_drawing_the_most_stones_given_stone():
         [0, 0, 0, 0, 0],
         [0, 1, 0, 1, 0]]
     player = Computer(2, "Hard")
-    assert player.best_drawing(board, 1, 1) == (1, 1, 1, 2)
+    assert player.best_next_drawing(board, 1, 1) == (1, 1, 1, 2)
 
 
 def test_best_drawing():
@@ -415,8 +412,8 @@ def test_best_drawing():
         [0, 1, 1, 1, 0]]
 
     player = Computer(1, 'Hard')
-    assert player.best_drawing(board, 0, 2) == (0, 2, 0, 1)
-    player.next_computer_turn(board, (0, 2), [(1, 1)])
+    assert player.best_next_drawing(board, 0, 2) == (0, 2, 0, 1)
+    player.next_turn(board, (0, 2), [(1, 1)])
     new_board = [[0, 1, 0, 0, 0],
                  [0, 0, 2, 1, 0],
                  [0, 0, 0, 0, 0],

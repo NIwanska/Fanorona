@@ -1,6 +1,6 @@
 import pygame
 import sys
-from players import Player, HumanPlayer, Computer
+from players import HumanPlayer, Computer
 from board import (
     Board,
     width,
