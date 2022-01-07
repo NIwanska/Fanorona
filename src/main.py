@@ -1,6 +1,6 @@
 import pygame
 import sys
-from players import Player, Computer
+from players import Player, HumanPlayer, Computer
 from board import (
     Board,
     width,
@@ -134,7 +134,7 @@ def ask_for_opponent(stone):
                 posy = event.pos[1]
                 if posx >= (width - size_of_button[0])/2 and posx <= (width + size_of_button[0])/2 \
                    and posy >= height/3 - size_of_button[1]/2 and posy <= height/3 + size_of_button[1]/2:
-                    opponent = Player(stone)
+                    opponent = HumanPlayer(stone)
                 elif posx >= (width - size_of_button[0])/2 and posx <= (width + size_of_button[0])/2 \
                         and posy >= height/3 - size_of_button[1]/2 + SQUARESIZE\
                         and posy <= height/3 + size_of_button[1]/2 + SQUARESIZE:
@@ -221,16 +221,13 @@ def main():
     size_of_board = ask_for_size_of_board()
     stone, opponent_stone = ask_for_stone()
     player2 = ask_for_opponent(opponent_stone)
-    player1 = Player(stone)
+    player1 = HumanPlayer(stone)
     board = Board(size_of_board[0], size_of_board[1])
     board.draw_board()
     stone_turn = 1
     while not board.is_winner():
         current_player = player1 if player1.stone() == stone_turn else player2
-        if type(current_player) == Player:
-            current_player.player_turn(board)
-        else:
-            current_player.computer_turn(board)
+        current_player.make_turn(board)
         stone_turn = 1 if stone_turn == 2 else 2
     pygame.time.delay(1000)
     print_result(player1, board.is_winner())
