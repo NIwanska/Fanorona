@@ -2,6 +2,7 @@ import pygame
 import sys
 from random import choice
 
+
 class Player():
     """
     A class to represent a player. Parent class of HumanPlayer and Computer classes.
@@ -36,7 +37,6 @@ class Player():
     make_turn(board):
         makes turns until there are no capturing moves
     """
-
 
     def __init__(self, stone):
         """
@@ -89,7 +89,6 @@ class Player():
         chosen_stone = (r1, c1)
         board.matrix[chosen_stone[0]][chosen_stone[1]] = 0
         board.matrix[r][c] = self.stone()
-        board.draw_board()
         return
 
     def capturing_move(self, board, move):
@@ -119,23 +118,18 @@ class Player():
         captured_stones = board.captured_stones(
             opponent_stone, move)
         if len(captured_stones[0]) != 0 and len(captured_stones[1]) != 0:
-            board.draw_board()
-            board.light_up_stones_to_capture(captured_stones[0])
-            board.light_up_stones_to_capture(captured_stones[1])
             self.choose_which_to_capture(board, captured_stones)
             return (r, c, r1, c1)
 
         elif len(captured_stones[0]) != 0:
             for captured_stone in captured_stones[0]:
                 board.matrix[captured_stone[0]
-                            ][captured_stone[1]] = 0
-            board.draw_board()
+                             ][captured_stone[1]] = 0
             return (r, c, r1, c1)
         elif len(captured_stones[1]) != 0:
             for captured_stone in captured_stones[1]:
                 board.matrix[captured_stone[0]
-                            ][captured_stone[1]] = 0
-            board.draw_board()
+                             ][captured_stone[1]] = 0
             return (r, c, r1, c1)
 
     def choose_which_to_capture(self, board, captured_stones):
@@ -158,6 +152,9 @@ class Player():
         """
         while True:
             if type(self) == HumanPlayer:
+                board.draw_board()
+                board.light_up_stones_to_capture(captured_stones[0])
+                board.light_up_stones_to_capture(captured_stones[1])
                 r, c = self.choose_stone(board)
             elif self.level() == 'Easy':
                 (r, c) = choice(captured_stones[0] + captured_stones[1])
@@ -168,14 +165,12 @@ class Player():
             if (r, c) in captured_stones[0]:
                 for captured_stone in captured_stones[0]:
                     board.matrix[captured_stone[0]
-                                ][captured_stone[1]] = 0
-                board.draw_board()
+                                 ][captured_stone[1]] = 0
                 return
             elif (r, c) in captured_stones[1]:
                 for captured_stone in captured_stones[1]:
                     board.matrix[captured_stone[0]
-                                ][captured_stone[1]] = 0
-                board.draw_board()
+                                 ][captured_stone[1]] = 0
                 return
 
     def is_next_turn(self, board, r, c, forbidden_moves):
@@ -196,7 +191,7 @@ class Player():
         bool
 
         """
-        board.light_up_chosen_stone([(r, c)])
+
         captured_stones = []
         for move in board.capturing_moves(self.stone(), self.opponent_stone()):
             is_move_available = True
@@ -206,8 +201,7 @@ class Player():
             if is_move_available and move[0] == r and move[1] == c:
                 captured_stones = captured_stones + board.captured_stones(self.opponent_stone(), move)[0]\
                     + board.captured_stones(self.opponent_stone(), move)[1]
-        board.light_up_stones_to_capture(captured_stones)
-        return bool(len(captured_stones))
+        return captured_stones
 
     def make_turn(self, board):
         """
@@ -224,24 +218,31 @@ class Player():
         """
 
         next_turn_moves = self.first_move(board)
+
         forbidden_moves = []
+        board.draw_board()
         while True:
             if next_turn_moves:
+                r = next_turn_moves[0]
+                c = next_turn_moves[1]
                 forbidden_moves.append(
                     (next_turn_moves[2], next_turn_moves[3]))
-                diff_r = next_turn_moves[0] - next_turn_moves[2]
-                diff_c = next_turn_moves[1] - next_turn_moves[3]
-                forbidden_moves.append(
-                    (next_turn_moves[0] + diff_r, next_turn_moves[1] + diff_c))
-                if self.is_next_turn(board, next_turn_moves[0], next_turn_moves[1], forbidden_moves):
+                diff_r = r - next_turn_moves[2]
+                diff_c = c - next_turn_moves[3]
+                forbidden_moves.append((r + diff_r, c + diff_c))
+                captured_stones = self.is_next_turn(
+                    board, r, c, forbidden_moves)
+                if bool(len(captured_stones)):
+                    board.light_up_chosen_stone([(r, c)])
+                    board.light_up_stones_to_capture(captured_stones)
                     next_turn_moves = self.next_turn(
-                        board, (next_turn_moves[0], next_turn_moves[1]), forbidden_moves)
+                        board, (r, c), forbidden_moves)
                     forbidden_moves.pop()
+                    board.draw_board()
                 else:
                     return
             else:
                 return
-
 
 
 class HumanPlayer(Player):
@@ -260,6 +261,7 @@ class HumanPlayer(Player):
         it checks if chosen move is capturing and
         not forbidden and makes capturing move
     """
+
     def __init__(self, stone):
         """
         Creates human player.
@@ -270,7 +272,6 @@ class HumanPlayer(Player):
             1 or 2
         """
         super().__init__(stone)
-
 
     def choose_stone(self, board):
         """
@@ -440,7 +441,7 @@ class Computer(Player):
                     board, chosen_stone[0], chosen_stone[1])
             r = drawing_move[2]
             c = drawing_move[3]
-            if (r, c) not in forbidden_moves:
+            if (r, c) not in forbidden_moves and chosen_stone[0] == drawing_move[0] and chosen_stone[1] == drawing_move[1]:
                 return self.capturing_move(board, (chosen_stone[0], chosen_stone[1], r, c))
 
     def first_move(self, board):
@@ -513,44 +514,43 @@ class Computer(Player):
         return capturing_moves[index//2]
 
     def best_next_drawing(self, board, r, c):
-            """
-            from capturing moves it returns move that lead to next move
-            if it is impossible it returns move that captures the most stones
+        """
+        from capturing moves it returns move that lead to next move
+        if it is impossible it returns move that captures the most stones
 
-            Parameters
-            ----------
-            board : Board
-            r : int,
-            c : int,
-                position of last moven stone
+        Parameters
+        ----------
+        board : Board
+        r : int,
+        c : int,
+            position of last moven stone
 
-            Returns
-            -------
-            move
-            """
-            stone = self.stone()
-            opponent_stone = self.opponent_stone()
-            next_moves = []
-            best_capture = []
-            capturing_moves_for_stone = []
-            for move in board.capturing_moves(stone, opponent_stone):
-                if move[0] == r and move[1] == c:
-                    best_capture.append(
-                        len(board.captured_stones(opponent_stone, move)[0]))
-                    best_capture.append(
-                        len(board.captured_stones(opponent_stone, move)[1]))
-                    for empty in board.empty_places(move[2], move[3]):
-                        empty_r = empty[0]
-                        empty_c = empty[1]
-                        future_move = (move[2], move[3], empty_r, empty_c)
-                        if len(board.captured_stones(opponent_stone, future_move)[0]) != 0 or\
-                                len(board.captured_stones(opponent_stone, future_move)[1]) != 0:
-                            next_moves.append(move)
-                    capturing_moves_for_stone.append(move)
-            if len(next_moves) > 0:
-                return choice(next_moves)
-            best_value = max(best_capture)
-            indices = [i for i, x in enumerate(best_capture) if x == best_value]
-            index = choice(indices)
-            return capturing_moves_for_stone[index//2]
-
+        Returns
+        -------
+        move
+        """
+        stone = self.stone()
+        opponent_stone = self.opponent_stone()
+        next_moves = []
+        best_capture = []
+        capturing_moves_for_stone = []
+        for move in board.capturing_moves(stone, opponent_stone):
+            if move[0] == r and move[1] == c:
+                best_capture.append(
+                    len(board.captured_stones(opponent_stone, move)[0]))
+                best_capture.append(
+                    len(board.captured_stones(opponent_stone, move)[1]))
+                for empty in board.empty_places(move[2], move[3]):
+                    empty_r = empty[0]
+                    empty_c = empty[1]
+                    future_move = (move[2], move[3], empty_r, empty_c)
+                    if len(board.captured_stones(opponent_stone, future_move)[0]) != 0 or\
+                            len(board.captured_stones(opponent_stone, future_move)[1]) != 0:
+                        next_moves.append(move)
+                capturing_moves_for_stone.append(move)
+        if len(next_moves) > 0:
+            return choice(next_moves)
+        best_value = max(best_capture)
+        indices = [i for i, x in enumerate(best_capture) if x == best_value]
+        index = choice(indices)
+        return capturing_moves_for_stone[index//2]

@@ -1,19 +1,19 @@
 import numpy as np
 import pygame
+from config import (
+    SQUARESIZE,
+    width,
+    height,
+    BROWN,
+    BLACK,
+    RED,
+    WHITE,
+    DARK_BROWN,
+    YELLOW,
+)
 
-SQUARESIZE = 100
-BROWN = (101, 67, 42)
-BLACK = (0, 0, 0)
-RED = (170, 1, 20)
-WHITE = (255, 255, 255)
-DARK_BROWN = (53, 40, 30)
-YELLOW = (200, 157, 124)
-# max size of board is 9x9
-width = 9*SQUARESIZE
-height = 5*SQUARESIZE
-size = (width, height)
-pygame.init()
-screen = pygame.display.set_mode(size)
+
+screen = None
 
 
 class Board:

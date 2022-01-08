@@ -1,7 +1,6 @@
 from src.players import HumanPlayer, Computer
 from src.board import Board
 
-
 def test_paika_move():
     board = Board(5, 5)
     board.matrix = [
@@ -57,64 +56,6 @@ def test_capturing_move_withdrawal():
     assert board.matrix[2][1] == 0
     new_board = [[0, 2, 0, 0, 0], [0, 0, 0, 2, 0], [0, 0, 0, 2, 0],
                  [0, 0, 0, 1, 0], [0, 1, 0, 1, 0]]
-    for row in new_board:
-        assert row in board.matrix
-
-
-def test_capturing_move_choosing(monkeypatch):
-    board = Board(5, 5)
-    board.matrix = [
-        [0, 2, 0, 0, 0],
-        [0, 2, 0, 2, 0],
-        [0, 1, 2, 0, 0],
-        [0, 0, 0, 1, 0],
-        [0, 2, 0, 1, 0]]
-    player = HumanPlayer(1)
-    move = (2, 1, 3, 1)
-
-    def return_choice(f, t):
-        return 4, 1
-    monkeypatch.setattr(HumanPlayer, "choose_stone", return_choice)
-    assert player.capturing_move(board, move) == (3, 1, 2, 1)
-    assert board.matrix[0][1] == 2
-    assert board.matrix[1][1] == 2
-    assert board.matrix[2][1] == 0
-    assert board.matrix[3][1] == 1
-    assert board.matrix[4][1] == 0
-    new_board = [[0, 2, 0, 0, 0],
-                 [0, 2, 0, 2, 0],
-                 [0, 0, 2, 0, 0],
-                 [0, 1, 0, 1, 0],
-                 [0, 0, 0, 1, 0]]
-    for row in new_board:
-        assert row in board.matrix
-
-
-def test_choose_which_to_capture_player(monkeypatch):
-    board = Board(5, 5)
-    board.matrix = [
-        [0, 2, 0, 0, 0],
-        [0, 2, 0, 2, 0],
-        [0, 1, 2, 0, 0],
-        [0, 0, 0, 1, 0],
-        [0, 2, 0, 1, 0]]
-    player = HumanPlayer(1)
-
-    def return_choice(f, t):
-        return 1, 1
-    monkeypatch.setattr(HumanPlayer, "choose_stone", return_choice)
-    captured_stones = ([(0, 1), (1, 1)], [(4, 1)])
-    player.choose_which_to_capture(board, captured_stones)
-    assert board.matrix[0][1] == 0
-    assert board.matrix[1][1] == 0
-    assert board.matrix[2][1] == 1
-    assert board.matrix[3][1] == 0
-    assert board.matrix[4][1] == 2
-    new_board = [[0, 0, 0, 0, 0],
-                 [0, 0, 0, 2, 0],
-                 [0, 1, 2, 0, 0],
-                 [0, 0, 0, 1, 0],
-                 [0, 2, 0, 1, 0]]
     for row in new_board:
         assert row in board.matrix
 
@@ -186,7 +127,7 @@ def test_is_next_turn_false():
         [0, 0, 0, 1, 0],
         [0, 2, 0, 1, 0]]
     player = HumanPlayer(2)
-    assert player.is_next_turn(board, 1, 3, [(2, 3)]) is False
+    assert bool(len(player.is_next_turn(board, 1, 3, [(2, 3)]))) is False
 
 
 def test_is_next_turn_True():
@@ -198,7 +139,7 @@ def test_is_next_turn_True():
         [0, 2, 1, 1, 0],
         [0, 0, 0, 1, 0]]
     player = HumanPlayer(2)
-    assert player.is_next_turn(board, 3, 1, [(4, 1)]) is True
+    assert bool(len(player.is_next_turn(board, 3, 1, [(4, 1)]))) is True
 
 
 def test_init_player():
@@ -419,5 +360,26 @@ def test_best_drawing():
                  [0, 0, 0, 0, 0],
                  [0, 1, 0, 0, 0],
                  [0, 1, 1, 1, 0]]
+    for row in new_board:
+        assert row in board.matrix
+
+
+def test_drawing():
+    board = Board(5, 5)
+    board.matrix = [
+        [0, 2, 2, 2, 2],
+        [2, 0, 2, 0, 2],
+        [2, 0, 0, 2, 1],
+        [1, 1, 1, 1, 1],
+        [1, 1, 1, 0, 1]]
+
+    player = Computer(1, 'Easy')
+    assert bool(len(player.is_next_turn(board, 3, 3, [(2, 2)]))) == True
+    player.next_turn(board, (3, 3), [(2, 2)])
+    new_board = [[0, 2, 2, 2, 2],
+                 [2, 0, 2, 0, 2],
+                 [2, 0, 0, 0, 1],
+                 [1, 1, 1, 0, 1],
+                 [1, 1, 1, 1, 1]]
     for row in new_board:
         assert row in board.matrix

@@ -1,18 +1,16 @@
 import pygame
 import sys
 from players import HumanPlayer, Computer
-from board import (
-    Board,
+from board import Board
+import board as brd
+from config import (
+    SQUARESIZE,
     width,
     height,
-    screen,
-    SQUARESIZE,
-    BLACK,
     BROWN,
-    YELLOW
+    BLACK,
+    YELLOW,
 )
-myfont = pygame.font.SysFont('Comic Sans MS', 60)
-myfont_title = pygame.font.SysFont('Comic Sans MS', 120)
 
 
 def print_question(question, options):
@@ -217,6 +215,14 @@ def main():
     -------
     None
     """
+    global screen
+    global myfont, myfont_title
+    pygame.init()
+    size = (width, height)
+    screen = pygame.display.set_mode(size)
+    brd.screen = screen
+    myfont = pygame.font.SysFont('Comic Sans MS', 60)
+    myfont_title = pygame.font.SysFont('Comic Sans MS', 120)
     print_text("FANORONA")
     size_of_board = ask_for_size_of_board()
     stone, opponent_stone = ask_for_stone()
