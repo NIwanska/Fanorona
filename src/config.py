@@ -6,5 +6,5 @@ WHITE = (255, 255, 255)
 DARK_BROWN = (53, 40, 30)
 YELLOW = (200, 157, 124)
 width = 9*SQUARESIZE
-height = 5*SQUARESIZE
+height = 6*SQUARESIZE
 size = (width, height)

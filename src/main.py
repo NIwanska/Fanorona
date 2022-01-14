@@ -5,6 +5,7 @@ from board import Board
 import board as brd
 from config import (
     SQUARESIZE,
+    WHITE,
     width,
     height,
     BROWN,
@@ -205,6 +206,18 @@ def print_result(player1, winning_stone):
         print_text("YOU LOSE...")
     return
 
+def show_turn(player, f_player_stone):
+    stone = 'WHITE' if player.stone() == 1 else 'BLACK'
+    text = 'Your Turn' if player.stone() == f_player_stone else "Opponent's turn"
+    text += f', stone : {stone}'
+    turn = myfont2.render(text, True, YELLOW)
+    rect = turn.get_rect(center=(width/2, height - SQUARESIZE/4))
+    pygame.draw.rect(screen, BLACK, (0, height - SQUARESIZE/2, width, SQUARESIZE))
+    screen.blit(turn, rect)
+    pygame.display.update()
+
+
+
 
 def main():
     """
@@ -216,12 +229,13 @@ def main():
     None
     """
     global screen
-    global myfont, myfont_title
+    global myfont, myfont_title, myfont2
     pygame.init()
     size = (width, height)
     screen = pygame.display.set_mode(size)
     brd.screen = screen
     myfont = pygame.font.SysFont('Comic Sans MS', 60)
+    myfont2 = pygame.font.SysFont('Comic Sans MS', 30)
     myfont_title = pygame.font.SysFont('Comic Sans MS', 120)
     print_text("FANORONA")
     size_of_board = ask_for_size_of_board()
@@ -233,14 +247,14 @@ def main():
     stone_turn = 1
     while not board.is_winner():
         current_player = player1 if player1.stone() == stone_turn else player2
+        show_turn(current_player, stone)
         current_player.make_turn(board)
         stone_turn = 1 if stone_turn == 2 else 2
     pygame.time.delay(1000)
     print_result(player1, board.is_winner())
-    while True:
-        for event in pygame.event.get():
-            if event.type == pygame.MOUSEBUTTONDOWN or event.type == pygame.QUIT:
-                sys.exit()
+    for event in pygame.event.get():
+        if event.type == pygame.MOUSEBUTTONDOWN or event.type == pygame.QUIT:
+            sys.exit()
 
 
 if __name__ == "__main__":
