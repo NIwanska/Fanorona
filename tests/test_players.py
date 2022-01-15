@@ -384,3 +384,23 @@ def test_drawing():
                  [1, 1, 1, 1, 1]]
     for row in new_board:
         assert row in board.matrix
+
+def test_best_drawing2():
+    board = Board(5, 9)
+    board.matrix = [
+        [2, 2, 2, 2, 0, 2, 0, 2, 2],
+        [2, 2, 0, 2, 2, 1, 2, 2, 2],
+        [2, 1, 0, 0, 0, 2, 0, 2, 1],
+        [1, 1, 0, 2, 1, 1, 1, 0, 1],
+        [1, 1, 0, 1, 0, 1, 1, 1, 0]]
+
+    player = Computer(2, 'Hard')
+    player.next_turn(board, (3, 3), [(2, 2), (1,2)])
+    new_board =        [[2, 2, 2, 2, 0, 2, 0, 2, 2],
+                        [2, 2, 0, 2, 2, 1, 2, 2, 2],
+                        [2, 1, 0, 0, 0, 2, 0, 2, 1],
+                        [1, 1, 2, 0, 0, 0, 0, 0, 1],
+                        [1, 1, 0, 1, 0, 1, 1, 1, 0]]
+    for row in new_board:
+        assert row in board.matrix
+

@@ -422,7 +422,7 @@ class Computer(Player):
             drawing_move = choice(board.capturing_moves(stone, opponent_stone))
         else:
             drawing_move = self.best_next_drawing(
-                board, chosen_stone[0], chosen_stone[1])
+                board, chosen_stone[0], chosen_stone[1], forbidden_moves)
         while not((drawing_move[2], drawing_move[3]) not in forbidden_moves
                   and chosen_stone[0] == drawing_move[0] and chosen_stone[1] == drawing_move[1]):
             if self.level() == 'Easy':
@@ -430,7 +430,7 @@ class Computer(Player):
                     board.capturing_moves(stone, opponent_stone))
             else:
                 drawing_move = self.best_next_drawing(
-                    board, chosen_stone[0], chosen_stone[1])
+                    board, chosen_stone[0], chosen_stone[1], forbidden_moves)
         return self.capturing_move(board, (chosen_stone[0], chosen_stone[1], drawing_move[2], drawing_move[3]))
 
     def choose_which_to_capture(self, board, captured_stones):
@@ -520,6 +520,7 @@ class Computer(Player):
                 future_move = (move[2], move[3], empty_r, empty_c)
                 if len(board.captured_stones(opponent_stone, future_move)[0]) != 0 or\
                         len(board.captured_stones(opponent_stone, future_move)[1]) != 0:
+
                     next_moves.append(move)
         if len(next_moves) > 0:
             return choice(next_moves)
@@ -528,7 +529,7 @@ class Computer(Player):
         index = choice(indices)
         return capturing_moves[index//2]
 
-    def best_next_drawing(self, board, r, c):
+    def best_next_drawing(self, board, r, c, forbidden_moves):
         """
         from capturing moves it returns move that lead to next move
         if it is impossible it returns move that captures the most stones
@@ -539,6 +540,7 @@ class Computer(Player):
         r : int,
         c : int,
             position of last moven stone
+        forbidden_moves : list of tuples
 
         Returns
         -------
@@ -558,10 +560,11 @@ class Computer(Player):
                 for empty in board.empty_places(move[2], move[3]):
                     empty_r = empty[0]
                     empty_c = empty[1]
-                    future_move = (move[2], move[3], empty_r, empty_c)
-                    if len(board.captured_stones(opponent_stone, future_move)[0]) != 0 or\
-                            len(board.captured_stones(opponent_stone, future_move)[1]) != 0:
-                        next_moves.append(move)
+                    if (empty_r, empty_c) not in forbidden_moves:
+                        future_move = (move[2], move[3], empty_r, empty_c)
+                        if len(board.captured_stones(opponent_stone, future_move)[0]) != 0 or\
+                                len(board.captured_stones(opponent_stone, future_move)[1]) != 0:
+                            next_moves.append(move)
                 capturing_moves_for_stone.append(move)
         if len(next_moves) > 0:
             return choice(next_moves)

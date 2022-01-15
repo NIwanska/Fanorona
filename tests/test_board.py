@@ -1,4 +1,5 @@
 from src.board import Board
+from config import SQUARESIZE
 
 
 def test_init_board():
@@ -7,8 +8,8 @@ def test_init_board():
             [1, 1, 1, 1, 1], [1, 1, 1, 1, 1]) in board.matrix
     assert board.rows == 5
     assert board.columns == 5
-    assert board.board_position_x == 200
-    assert board.board_position_y == 0
+    assert board.board_position_x == 2*SQUARESIZE
+    assert board.board_position_y == SQUARESIZE//2
 
 
 def test_is_winner_1():
@@ -46,7 +47,7 @@ def test_is_winner_none():
 
 def test_chosen_position():
     board = Board(5, 9)
-    assert board.chosen_position(150, 150) == (1, 1)
+    assert board.chosen_position(1.5*SQUARESIZE, 2*SQUARESIZE) == (1, 1)
 
 
 def test_diagonal_moves():
