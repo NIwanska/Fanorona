@@ -1,6 +1,7 @@
 from src.players import HumanPlayer, Computer
 from src.board import Board
 
+
 def test_paika_move():
     board = Board(5, 5)
     board.matrix = [
